@@ -453,9 +453,9 @@ class SliceGeneratorTest < ActiveSupport::TestCase
     assert_equal 1, generator.hosts_count
   end
 
-  test 'excludes hosts with host_registration_insights set to false' do
+  test 'excludes hosts with host_registration_insights_inventory set to false' do
     @host.host_parameters << HostParameter.create(
-      name: 'host_registration_insights',
+      name: 'host_registration_insights_inventory',
       value: "false",
       parameter_type: 'boolean'
     )
@@ -463,6 +463,28 @@ class SliceGeneratorTest < ActiveSupport::TestCase
     count = ForemanInventoryUpload::Generators::Queries.for_org(@host.organization_id).count
 
     assert_equal 0, count
+  end
+
+  test 'includes hosts with host_registration_insights set to true' do
+    @host.host_parameters.build(
+      name: 'host_registration_insights_inventory',
+      value: 'true',
+      parameter_type: 'boolean'
+    )
+    @host.save!
+
+    batch = Host.where(id: @host.id).in_batches.first
+    generator = create_generator(batch)
+
+    actual = JSON.parse(generator.render.join("\n"))
+
+    assert_equal '00000000-0000-0000-0000-000000000000', actual['report_slice_id']
+    assert_not_nil actual_host = actual['hosts'].first
+    assert_equal @host.fqdn, actual_host['fqdn']
+
+    param = @host.host_parameters.first
+    assert_equal 'host_registration_insights_inventory', param.name
+    assert_equal true, param.value
   end
 
   test 'shows system_memory_bytes in bytes' do

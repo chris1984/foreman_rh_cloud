@@ -5,8 +5,9 @@ exports[`ReportUpload rendering render with Props 1`] = `
   className="report-upload"
 >
   <TabHeader
+    downloadButtonDisabled={[Function]}
     exitCode="exit 0"
-    onDownload={[Function]}
+    onDownload={null}
     onRestart={null}
     toggleFullScreen={[Function]}
   />
@@ -29,8 +30,9 @@ exports[`ReportUpload rendering render without Props 1`] = `
   className="report-upload"
 >
   <TabHeader
+    downloadButtonDisabled={[Function]}
     exitCode=""
-    onDownload={[Function]}
+    onDownload={null}
     onRestart={null}
     toggleFullScreen={[Function]}
   />

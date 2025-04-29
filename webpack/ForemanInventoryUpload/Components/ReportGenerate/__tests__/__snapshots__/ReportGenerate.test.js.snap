@@ -5,8 +5,9 @@ exports[`ReportGenerate rendering render with Props 1`] = `
   className="report-generate"
 >
   <TabHeader
+    downloadButtonDisabled={[Function]}
     exitCode="exit 0"
-    onDownload={null}
+    onDownload={[Function]}
     onRestart={[Function]}
     toggleFullScreen={[Function]}
   />
@@ -29,8 +30,9 @@ exports[`ReportGenerate rendering render without Props 1`] = `
   className="report-generate"
 >
   <TabHeader
+    downloadButtonDisabled={[Function]}
     exitCode=""
-    onDownload={null}
+    onDownload={[Function]}
     onRestart={[Function]}
     toggleFullScreen={[Function]}
   />

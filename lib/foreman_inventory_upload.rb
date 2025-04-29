@@ -30,6 +30,11 @@ module ForemanInventoryUpload
     File.join(ForemanInventoryUpload.done_folder, filename)
   end
 
+  def self.report_file_paths(organization_id)
+    filename = facts_archive_name(organization_id)
+    Dir[ForemanInventoryUpload.uploads_file_path(filename), ForemanInventoryUpload.done_file_path(filename)]
+  end
+
   def self.generated_reports_folder
     @generated_reports_folder ||= ensure_folder(
       File.join(

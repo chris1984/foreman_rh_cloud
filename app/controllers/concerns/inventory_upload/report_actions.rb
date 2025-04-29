@@ -16,7 +16,7 @@ module InventoryUpload
 
     def report_file(organization_id)
       filename = ForemanInventoryUpload.facts_archive_name(organization_id)
-      files = Dir["{#{ForemanInventoryUpload.uploads_file_path(filename)},#{ForemanInventoryUpload.done_file_path(filename)}}"]
+      files = ForemanInventoryUpload.report_file_paths(organization_id)
 
       raise ReportMissingError.new(filename: filename) if files.empty?
 

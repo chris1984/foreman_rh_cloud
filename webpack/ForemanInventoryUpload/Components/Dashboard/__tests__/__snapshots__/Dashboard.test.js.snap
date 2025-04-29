@@ -10,6 +10,8 @@ exports[`Dashboard rendering with props 1`] = `
         "name": "Generating",
         "onClick": [Function],
         "props": Object {
+          "downloadButtonDisabled": [Function],
+          "downloadReports": [Function],
           "exitCode": "unknown",
           "restartProcess": [Function],
           "toggleFullScreen": [Function],
@@ -21,7 +23,6 @@ exports[`Dashboard rendering with props 1`] = `
         "name": "Uploading",
         "onClick": [Function],
         "props": Object {
-          "downloadReports": [Function],
           "exitCode": "unknown",
           "toggleFullScreen": [Function],
         },

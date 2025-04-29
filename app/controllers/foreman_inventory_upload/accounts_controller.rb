@@ -8,12 +8,14 @@ module ForemanInventoryUpload
         labels.map do |id, label|
           generate_report_status = status_for(id, ForemanInventoryUpload::Async::GenerateReportJob)
           upload_report_status = status_for(id, ForemanInventoryUpload::Async::UploadReportJob)
+          report_file_paths = ForemanInventoryUpload.report_file_paths(id)
 
           [
             label,
             {
               generate_report_status: generate_report_status,
               upload_report_status: upload_report_status,
+              report_file_paths: report_file_paths,
               id: id,
             },
           ]

@@ -8,7 +8,13 @@ import { selectSubscriptionConnectionEnabled } from '../InventorySettings/Invent
 import { isExitCodeLoading } from '../../ForemanInventoryHelpers';
 import './tabHeader.scss';
 
-const TabHeader = ({ exitCode, onRestart, onDownload, toggleFullScreen }) => {
+const TabHeader = ({
+  exitCode,
+  onRestart,
+  onDownload,
+  downloadButtonDisabled,
+  toggleFullScreen,
+}) => {
   const subscriptionConnectionEnabled = useSelector(
     selectSubscriptionConnectionEnabled
   );
@@ -33,7 +39,7 @@ const TabHeader = ({ exitCode, onRestart, onDownload, toggleFullScreen }) => {
             </Button>
           ) : null}
           {onDownload ? (
-            <Button onClick={onDownload}>
+            <Button onClick={onDownload} disabled={downloadButtonDisabled()}>
               {__('Download Report')} <Icon name="download" />
             </Button>
           ) : null}
@@ -51,6 +57,7 @@ TabHeader.propTypes = {
   onRestart: PropTypes.func,
   onDownload: PropTypes.func,
   exitCode: PropTypes.string,
+  downloadButtonDisabled: PropTypes.func,
   toggleFullScreen: PropTypes.func,
 };
 
@@ -58,6 +65,7 @@ TabHeader.defaultProps = {
   onRestart: null,
   exitCode: '',
   onDownload: null,
+  downloadButtonDisabled: noop,
   toggleFullScreen: noop,
 };
 

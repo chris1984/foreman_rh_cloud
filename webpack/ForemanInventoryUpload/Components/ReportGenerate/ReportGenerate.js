@@ -12,6 +12,8 @@ const ReportGenerate = ({
   completed,
   error,
   restartProcess,
+  downloadReports,
+  downloadButtonDisabled,
   toggleFullScreen,
   scheduled,
 }) => (
@@ -19,6 +21,8 @@ const ReportGenerate = ({
     <TabHeader
       exitCode={exitCode}
       onRestart={restartProcess}
+      onDownload={downloadReports}
+      downloadButtonDisabled={downloadButtonDisabled}
       toggleFullScreen={toggleFullScreen}
     />
     <TabBody
@@ -40,6 +44,8 @@ ReportGenerate.propTypes = {
   completed: PropTypes.number,
   error: PropTypes.string,
   restartProcess: PropTypes.func,
+  downloadReports: PropTypes.func,
+  downloadButtonDisabled: PropTypes.func,
   toggleFullScreen: PropTypes.func,
   scheduled: PropTypes.string,
 };
@@ -50,6 +56,8 @@ ReportGenerate.defaultProps = {
   completed: 0,
   error: null,
   restartProcess: noop,
+  downloadReports: noop,
+  downloadButtonDisabled: noop,
   toggleFullScreen: noop,
   scheduled: null,
 };

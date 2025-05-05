@@ -50,56 +50,97 @@ module ForemanInventoryUpload
         @stream.simple_field('success', ActiveModel::Type::Boolean.new.cast(fact_value(host, 'conversions::success')), :last)
       end
 
+      def insights_minimal_data_collection(host)
+        @stream.simple_field('account', account_id(host.organization).to_s)
+        @stream.simple_field('subscription_manager_id', uuid_value!(host.subscription_facet&.uuid))
+        @stream.simple_field('insights_id', uuid_value(fact_value(host, 'insights_id')))
+        @stream.simple_field('bios_uuid', bios_uuid(host))
+        @stream.simple_field('bios_vendor', fact_value(host, 'dmi::bios::vendor'))
+        @stream.simple_field('bios_version', fact_value(host, 'dmi::bios::version'))
+        @stream.simple_field('arch', host.architecture&.name)
+        @stream.simple_field(
+          'infrastructure_type',
+          ActiveModel::Type::Boolean.new.cast(fact_value(host, 'virt::is_guest')) ? 'virtual' : 'physical'
+        )
+        @stream.object_field('system_profile') do
+          unless (installed_products = host.subscription_facet&.installed_products).empty?
+            @stream.array_field('installed_products') do
+              @stream.raw(installed_products.map do |product|
+                {
+                  'name': product.name,
+                  'id': product.cp_product_id,
+                }.to_json
+              end.join(', '))
+            end
+          end
+          @stream.simple_field('cores_per_socket', fact_value(host, 'cpu::core(s)_per_socket')) { |v| v.to_i } if fact_value(host, 'cpu::core(s)_per_socket').present?
+          @stream.simple_field('system_memory_bytes', fact_value(host, 'memory::memtotal')) { |v| kilobytes_to_bytes(v.to_i) } if fact_value(host, 'memory::memtotal').present?
+          @stream.simple_field('number_of_cpus', fact_value(host, 'cpu::cpu(s)')) { |v| v.to_i } if fact_value(host, 'cpu::cpu(s)').present?
+          @stream.simple_field('number_of_sockets', fact_value(host, 'cpu::cpu_socket(s)'), :last) { |v| v.to_i } if fact_value(host, 'cpu::cpu_socket(s)').present?
+        end
+        if host.subscription_facet.hypervisor?
+          @stream.simple_field('cpu_socket(s)', fact_value(host, 'cpu::cpu_socket(s)'))
+          @stream.simple_field('hypervisor_type', fact_value(host, 'hypervisor::type'))
+          @stream.simple_field('hypervisor_version', fact_value(host, 'hypervisor::version'), :last)
+        else
+          @stream.simple_field('cpu_socket(s)', fact_value(host, 'cpu::cpu_socket(s)'), :last)
+        end
+      end
+
       def report_host(host)
         host_ips_cache = host_ips(host)
         @stream.object do
-          @stream.simple_field('fqdn', fqdn(host))
-          @stream.simple_field('account', account_id(host.organization).to_s)
-          @stream.simple_field('subscription_manager_id', uuid_value!(host.subscription_facet&.uuid))
-          @stream.simple_field('satellite_id', uuid_value!(host.subscription_facet&.uuid))
-          if host.subscription_facet&.convert2rhel_through_foreman.present?
-            @stream.object_field('conversions') do
-              @stream.object_field('source_os') do
-                @stream.simple_field('name', fact_value(host, 'conversions::source_os::name'))
-                @stream.simple_field('version', fact_value(host, 'conversions::source_os::version') || 'Unknown - Fact not reported', :last)
-              end
-              @stream.object_field('target_os') do
-                @stream.simple_field('name', fact_value(host, 'conversions::target_os::name'))
-                @stream.simple_field('version', fact_value(host, 'conversions::target_os::version') || 'Unknown - Fact not reported', :last)
-              end
-              report_conversions(host)
-            end
-          end
-          @stream.simple_field('bios_uuid', bios_uuid(host))
-          @stream.simple_field('vm_uuid', uuid_value(fact_value(host, 'virt::uuid')))
-          @stream.simple_field('insights_id', uuid_value(fact_value(host, 'insights_id')))
-          report_ip_addresses(host, host_ips_cache)
-          report_mac_addresses(host)
-          @stream.object_field('system_profile') do
-            report_system_profile(host, host_ips_cache)
-          end
-          @stream.array_field('facts') do
-            @stream.object do
-              @stream.simple_field('namespace', SATELLITE_NAMESPACE)
-              @stream.object_field('facts', :last) do
-                report_satellite_facts(host)
+          if Setting[:insights_minimal_data_collection]
+            insights_minimal_data_collection(host)
+          else
+            @stream.simple_field('fqdn', fqdn(host))
+            @stream.simple_field('account', account_id(host.organization).to_s)
+            @stream.simple_field('subscription_manager_id', uuid_value!(host.subscription_facet&.uuid))
+            @stream.simple_field('satellite_id', uuid_value!(host.subscription_facet&.uuid))
+            if host.subscription_facet&.convert2rhel_through_foreman.present?
+              @stream.object_field('conversions') do
+                @stream.object_field('source_os') do
+                  @stream.simple_field('name', fact_value(host, 'conversions::source_os::name'))
+                  @stream.simple_field('version', fact_value(host, 'conversions::source_os::version') || 'Unknown - Fact not reported', :last)
+                end
+                @stream.object_field('target_os') do
+                  @stream.simple_field('name', fact_value(host, 'conversions::target_os::name'))
+                  @stream.simple_field('version', fact_value(host, 'conversions::target_os::version') || 'Unknown - Fact not reported', :last)
+                end
+                report_conversions(host)
               end
             end
-          end
-
-          @stream.array_field('tags', :last) do
-            tags_generator = Tags.new(host)
-
-            host_params_tags = tags_generator.generate_parameters
-            host_params_tags.each do |key, value|
-              report_tag(SATELLITE_PARAMS_NAMESPACE, key, value)
+            @stream.simple_field('bios_uuid', bios_uuid(host))
+            @stream.simple_field('vm_uuid', uuid_value(fact_value(host, 'virt::uuid')))
+            @stream.simple_field('insights_id', uuid_value(fact_value(host, 'insights_id')))
+            report_ip_addresses(host, host_ips_cache)
+            report_mac_addresses(host)
+            @stream.object_field('system_profile') do
+              report_system_profile(host, host_ips_cache)
             end
 
-            tags = tags_generator.generate
-            last_index = tags.count - 1
-            tags.each_with_index do |pair, index|
-              key, value = pair
-              report_tag(SATELLITE_NAMESPACE, key, value, index == last_index)
+            @stream.array_field('facts') do
+              @stream.object do
+                @stream.simple_field('namespace', SATELLITE_NAMESPACE)
+                @stream.object_field('facts', :last) do
+                  report_satellite_facts(host)
+                end
+              end
+            end
+
+            @stream.array_field('tags', :last) do
+              tags_generator = Tags.new(host)
+              host_params_tags = tags_generator.generate_parameters
+              host_params_tags.each do |key, value|
+                report_tag(SATELLITE_PARAMS_NAMESPACE, key, value)
+              end
+
+              tags = tags_generator.generate
+              last_index = tags.count - 1
+              tags.each_with_index do |pair, index|
+                key, value = pair
+                report_tag(SATELLITE_NAMESPACE, key, value, index == last_index)
+              end
             end
           end
         end
@@ -165,7 +206,7 @@ module ForemanInventoryUpload
             end.join(', '))
           end
         end
-        unless Setting[:exclude_installed_packages]
+        if !Setting[:insights_minimal_data_collection] && !Setting[:exclude_installed_packages]
           @stream.array_field('installed_packages') do
             first = true
             host.installed_packages.each do |package|

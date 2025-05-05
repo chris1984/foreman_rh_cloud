@@ -17,6 +17,8 @@ module ForemanInventoryUpload
               'distribution::name',
               'uname::release',
               'lscpu::flags',
+              'hypervisor::type',
+              'hypervisor::version',
               'distribution::version',
               'distribution::id',
               'virt::is_guest',

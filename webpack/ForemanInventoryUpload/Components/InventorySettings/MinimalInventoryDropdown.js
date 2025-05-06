@@ -21,7 +21,7 @@ const MinimalInventoryDropdown = ({ setChosenValue }) => {
     minimal: {
       title: __('Minimal data collection'),
       description: __(
-        'Only send the minimum required data to Red Hat cloud, and obfuscate wherever possible'
+        'Only send the minimum required data to Red Hat cloud, obfuscation settings are disabled'
       ),
     },
     optional: {

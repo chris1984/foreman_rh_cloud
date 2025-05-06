@@ -75,7 +75,6 @@ module ForemanInventoryUpload
       end
 
       def obfuscate_ips?(host)
-        # return true if Setting[:insights_minimal_data_collection]
         insights_client_setting = fact_value(host, 'insights_client::obfuscate_ip_enabled')
         insights_client_setting = ActiveModel::Type::Boolean.new.cast(insights_client_setting)
         return insights_client_setting unless insights_client_setting.nil?

@@ -78,7 +78,7 @@ module ForemanInventoryUpload
         # If the host-specific setting is not nil (meaning it was explicitly set to true or false),
         # return its boolean value directly. This prioritizes the host-specific setting
         # over the global default if the host has a specific configuration.
-        return insights_client_setting if !insights_client_setting.nil?
+        return insights_client_setting unless insights_client_setting.nil?
 
         # If the host-specific setting was nil (meaning it wasn't explicitly set for this host),
         # fall back to the global 'obfuscate_inventory_hostnames' setting.

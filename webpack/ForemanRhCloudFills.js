@@ -5,7 +5,7 @@ import InventoryAutoUploadSwitcher from './ForemanInventoryUpload/SubscriptionsP
 import NewHostDetailsTab from './InsightsHostDetailsTab/NewHostDetailsTab';
 import { InsightsTotalRiskChartWrapper } from './InsightsHostDetailsTab/InsightsTotalRiskChartWrapper';
 import { isNotRhelHost, vulnerabilityDisabled } from './ForemanRhCloudHelpers';
-import CVEsHostDetailsTab from './CVEsHostDetailsTab/CVEsHostDetailsTab';
+import CVEsHostDetailsTabWrapper from './CVEsHostDetailsTab/CVEsHostDetailsTab';
 
 const fills = [
   {
@@ -32,11 +32,12 @@ const fills = [
   },
   {
     slot: 'host-details-page-tabs',
-    name: 'CVEs',
-    component: props => <CVEsHostDetailsTab {...props} />,
+    name: 'Vulnerabilities',
+    component: props => <CVEsHostDetailsTabWrapper {...props} />,
     weight: 300,
     metadata: {
       hideTab: vulnerabilityDisabled,
+      title: __('Vulnerabilities'),
     },
   },
 ];

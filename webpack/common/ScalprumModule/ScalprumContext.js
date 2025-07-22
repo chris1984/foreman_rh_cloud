@@ -4,6 +4,16 @@ export const modulesConfig = {
     manifestLocation: `${window.location.origin}/assets/apps/vulnerability/fed-mods.json`,
     cdnPath: `${window.location.origin}/assets/apps/vulnerability/`,
   },
+  advisor: {
+    name: 'advisor',
+    manifestLocation: `${window.location.origin}/assets/apps/advisor/fed-mods.json`,
+    cdnPath: `${window.location.origin}/assets/apps/advisor/`,
+  },
+  inventory: {
+    name: 'inventory',
+    manifestLocation: `${window.location.origin}/assets/apps/inventory/fed-mods.json`,
+    cdnPath: `${window.location.origin}/assets/apps/inventory/`,
+  },
 };
 
 export const mockUser = {

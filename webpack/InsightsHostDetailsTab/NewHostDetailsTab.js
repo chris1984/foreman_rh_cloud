@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import { useDispatch, useSelector } from 'react-redux';
 import SearchBar from 'foremanReact/components/SearchBar';
 import { translate as __ } from 'foremanReact/common/I18n';
+import { ScalprumComponent, ScalprumProvider } from '@scalprum/react-core';
 import { Grid, GridItem } from '@patternfly/react-core';
 import {
   Dropdown,
@@ -21,7 +22,10 @@ import {
 } from '../InsightsCloudSync/Components/InsightsTable/InsightsTableSelectors';
 import { redHatAdvisorSystems } from '../InsightsCloudSync/InsightsCloudSyncHelpers';
 import { useAdvisorEngineConfig } from '../common/Hooks/ConfigHooks';
+import { generateRuleUrl } from '../InsightsCloudSync/InsightsCloudSync';
+import { providerOptions } from '../common/ScalprumModule/ScalprumContext';
 
+// Hosted Insights advisor
 const NewHostDetailsTab = ({ hostName, router }) => {
   const dispatch = useDispatch();
   const query = useSelector(selectSearch);
@@ -104,4 +108,50 @@ NewHostDetailsTab.defaultProps = {
   router: {},
 };
 
-export default NewHostDetailsTab;
+// Local Insights advisor
+const scope = 'advisor';
+// eslint-disable-next-line spellcheck/spell-checker
+const module = './HostDetailsLightspeedTabWrapped';
+
+const IopInsightsTab = props => (
+  <ScalprumComponent
+    scope={scope}
+    module={module}
+    IopRemediationModal={RemediationModal}
+    generateRuleUrl={generateRuleUrl}
+    {...props}
+  />
+);
+
+const IopInsightsTabWrapped = props => (
+  <ScalprumProvider {...providerOptions}>
+    <IopInsightsTab {...props} />
+  </ScalprumProvider>
+);
+
+const LightspeedTab = props => {
+  const { response } = props;
+  const isLocalAdvisorEngine =
+    // eslint-disable-next-line camelcase
+    response?.insights_attributes?.use_local_advisor_engine;
+
+  return isLocalAdvisorEngine ? (
+    <IopInsightsTabWrapped {...props} />
+  ) : (
+    <NewHostDetailsTab {...props} />
+  );
+};
+
+LightspeedTab.propTypes = {
+  response: PropTypes.shape({
+    insights_attributes: {
+      use_local_advisor_engine: PropTypes.bool,
+    },
+  }),
+};
+
+LightspeedTab.defaultProps = {
+  response: {},
+};
+
+export default LightspeedTab;

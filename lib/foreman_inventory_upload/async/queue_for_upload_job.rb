@@ -1,12 +1,22 @@
 module ForemanInventoryUpload
   module Async
     class QueueForUploadJob < ::Actions::EntryAction
+      DISCONNECTED_MESSAGE_TEMPLATE = 'Report not moved because connection to Insights is not enabled or the --no-upload option was passed.'.freeze
+
       def plan(base_folder, report_file, organization_id, disconnected)
-        enqueue_task = plan_self(base_folder: base_folder, report_file: report_file)
+        enqueue_task = plan_self(base_folder: base_folder, report_file: report_file, organization_id: organization_id, disconnected: disconnected)
+        if content_disconnected?
+          log_disconnected_message(report_file, organization_id)
+          return
+        end
         plan_upload_report(enqueue_task.output[:enqueued_file_name], organization_id, disconnected)
       end
 
       def run
+        if content_disconnected?
+          log_disconnected_message(report_file, organization_id)
+          return
+        end
         logger.debug('Ensuring objects')
         ensure_ouput_folder
         ensure_output_script
@@ -59,8 +69,24 @@ module ForemanInventoryUpload
         input[:report_file]
       end
 
+      def organization_id
+        input[:organization_id]
+      end
+
+      def content_disconnected?
+        input[:disconnected] || !Setting[:subscription_connection_enabled]
+      end
+
       def plan_upload_report(enqueued_file_name, organization_id, disconnected)
         plan_action(UploadReportJob, enqueued_file_name, organization_id, disconnected)
+      end
+
+      private
+
+      def log_disconnected_message(report_file, organization_id)
+        organization_name = Organization.find_by(id: organization_id)&.name || "ID:#{organization_id}"
+        message = "#{DISCONNECTED_MESSAGE_TEMPLATE} Report: #{report_file}, Organization: #{organization_name}"
+        logger.info(message)
       end
     end
   end
